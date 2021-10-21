@@ -29,7 +29,7 @@ cd /opt/azureguard
 
 # Check updates
 echo "Checking updates"
-source ./scripts/subinstallers/check_updates.sh
+source ./scripts/subinstallers/check_updates.sh || true
 
 # SSH keys
 if [ ! -f ~/.ssh/id_rsa ]; then
