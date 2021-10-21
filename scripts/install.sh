@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-
+set -x
 export DEBIAN_FRONTEND=noninteractive
 
 if [ "$EUID" -ne 0 ]
@@ -29,7 +29,7 @@ cd /opt/azureguard
 
 # Check updates
 echo "Checking updates"
-source ./scripts/subinstallers/check_updates.sh || true
+source ./scripts/subinstallers/check_updates.sh
 
 # SSH keys
 if [ ! -f ~/.ssh/id_rsa ]; then
