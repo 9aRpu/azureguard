@@ -27,7 +27,7 @@ GIT_BRANCH=main
 # Clone to /opt
 echo "Cloning $GIT_BRANCH branch from azureguard repo"
 sudo git clone https://github.com/9aRpu/azureguard -b $GIT_BRANCH /opt/azureguard
-sudo chown -R $USER:$USER /opt/azureguard
+sudo chown -R "$USER":"$USER" /opt/azureguard
 cd /opt/azureguard
 
 # Check updates
