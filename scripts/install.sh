@@ -18,6 +18,8 @@ echo -e "                                                            "
 
 rm -rf /opt/azureguard 2>/dev/null || true
 
+apt-get install -yq git
+
 GIT_BRANCH=main
 
 # Clone to /opt
@@ -35,8 +37,32 @@ if [ ! -f ~/.ssh/id_rsa ]; then
     ssh-keygen -t rsa -b 4096 -N "" -m pem -f ~/.ssh/id_rsa -q
     
     # Authorized keys
-    echo "from=\"172.16.0.0/12,192.168.0.0/16,10.0.0.0/8\" $(cat ~/.ssh/id_rsa.pub)" > ~/.ssh/authorized_keys
+    cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
 else
     echo "SSH key exists for $USER"
 fi
 
+# Get OS and distro
+source ./scripts/subinstallers/platform.sh
+
+# Install kernel headers
+if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ]; then
+    apt-get install -yq linux-headers-$(uname -r)
+else
+    echo "Unsupported OS: $DISTRO"
+    exit 1
+fi
+
+# Wireugard
+source ./scripts/subinstallers/wireguard.sh
+
+# Blobfuse
+source ./scripts/subinstallers/blobfuse.sh
+
+# unattended upgrades
+cp ./conf/20auto-upgrades /etc/apt/apt.conf.d/
+cp ./conf/50unattended-upgrades /etc/apt/apt.conf.d/
+
+systemctl stop unattended-upgrades
+systemctl daemon-reload
+systemctl restart unattended-upgrades
