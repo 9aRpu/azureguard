@@ -1,2 +1,2 @@
 # azureguard
-WireGuard implementation build to work with Azure
+WireGuard implementation for teams build to work with Azure 

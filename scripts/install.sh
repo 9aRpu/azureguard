@@ -96,6 +96,11 @@ source ./scripts/subinstallers/wireguard.sh
 # Blobfuse
 source ./scripts/subinstallers/blobfuse.sh
 
+# Mount service for blobfuse
+sudo mkdir -p /mnt/blobfusetmp/wireguard
+sudo cp ./services/mountwg.service /etc/systemd/system/
+# TODO: connection config
+
 # unattended upgrades
 sudo cp ./conf/20auto-upgrades /etc/apt/apt.conf.d/
 sudo cp ./conf/50unattended-upgrades /etc/apt/apt.conf.d/
