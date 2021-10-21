@@ -1,4 +1,4 @@
 #!/bin/bash
 echo "Installing WireGuard"
-apt-get update
-apt-get install -yq openresolv wireguard
+sudo apt-get update
+sudo apt-get install -yq openresolv wireguard

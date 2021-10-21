@@ -20,7 +20,7 @@ echo -e "                                                            "
 
 sudo rm -rf /opt/azureguard 2>/dev/null || true
 
-apt-get install -yq git
+sudo apt-get install -yq git
 
 GIT_BRANCH=main
 
