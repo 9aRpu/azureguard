@@ -9,6 +9,8 @@ then echo "Please run as root"
     exit
 fi
 
+echo "Running as $USER"
+
 echo -e "    ___                        ______                     __"
 echo -e "   /   |____  __  __________  / ____/_  ______ __________/ /"
 echo -e "  / /| /_  / / / / / ___/ _ \/ / __/ / / / __  / ___/ __  / "
