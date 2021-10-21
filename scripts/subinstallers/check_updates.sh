@@ -8,4 +8,3 @@ if [[ "$UPDATES" -ne "0" ]]; then
     echo "Please run updates and reboot before installing azureguard: sudo apt-get update && sudo apt-get -y dist-upgrade"
     exit 1;
 fi
-printf '%d\n' $?

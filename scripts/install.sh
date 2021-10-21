@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-set -x
+# set -x
 export DEBIAN_FRONTEND=noninteractive
 
 if [ "$EUID" -ne 0 ]
@@ -25,11 +25,10 @@ GIT_BRANCH=main
 # Clone to /opt
 echo "Cloning $GIT_BRANCH branch from azureguard repo"
 git clone https://github.com/9aRpu/azureguard -b $GIT_BRANCH /opt/azureguard
-cd /opt/azureguard
 
 # Check updates
 echo "Checking updates"
-source ./scripts/subinstallers/check_updates.sh
+source /opt/azureguard/scripts/subinstallers/check_updates.sh
 
 # SSH keys
 if [ ! -f ~/.ssh/id_rsa ]; then
@@ -43,21 +42,21 @@ else
 fi
 
 # Get OS and distro
-source ./scripts/subinstallers/platform.sh
+source /opt/azureguard/scripts/subinstallers/platform.sh
 
 # Install kernel headers
 if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ]; then
-    apt-get install -yq linux-headers-$(uname -r)
+    apt-get install -yq linux-headers-"$(uname -r)"
 else
     echo "Unsupported OS: $DISTRO"
     exit 1
 fi
 
 # Wireugard
-source ./scripts/subinstallers/wireguard.sh
+source /opt/azureguard/scripts/subinstallers/wireguard.sh
 
 # Blobfuse
-source ./scripts/subinstallers/blobfuse.sh
+source /opt/azureguard/scripts/subinstallers/blobfuse.sh
 
 # unattended upgrades
 cp ./conf/20auto-upgrades /etc/apt/apt.conf.d/
