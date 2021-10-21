@@ -4,10 +4,10 @@ set -e
 # set -x
 export DEBIAN_FRONTEND=noninteractive
 
-if [ "$EUID" -ne 0 ]
-then echo "Please run as root"
-    exit
-fi
+# if [ "$EUID" -ne 0 ]
+# then echo "Please run as root"
+#     exit
+# fi
 
 echo "Running as $USER"
 
@@ -18,7 +18,7 @@ echo -e " / ___ |/ /_/ /_/ / /  /  __/ /_/ / /_/ / /_/ / /  / /_/ /  "
 echo -e "/_/  |_/___/\__,_/_/   \___/\____/\__,_/\__,_/_/   \__,_/   "
 echo -e "                                                            "
 
-rm -rf /opt/azureguard 2>/dev/null || true
+sudo rm -rf /opt/azureguard 2>/dev/null || true
 
 apt-get install -yq git
 
@@ -26,11 +26,14 @@ GIT_BRANCH=main
 
 # Clone to /opt
 echo "Cloning $GIT_BRANCH branch from azureguard repo"
-git clone https://github.com/9aRpu/azureguard -b $GIT_BRANCH /opt/azureguard
+sudo git clone https://github.com/9aRpu/azureguard -b $GIT_BRANCH /opt/azureguard
+sudo chown -R $USER:$USER /opt/azureguard
+pushd .
+cd /opt/azureguard
 
 # Check updates
 echo "Checking updates"
-source /opt/azureguard/scripts/subinstallers/check_updates.sh
+source ./scripts/subinstallers/check_updates.sh
 
 # SSH keys
 if [ ! -f ~/.ssh/id_rsa ]; then
@@ -44,7 +47,7 @@ else
 fi
 
 # Get OS and distro
-source /opt/azureguard/scripts/subinstallers/platform.sh
+source ./scripts/subinstallers/platform.sh
 
 # Install kernel headers
 if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ]; then
@@ -55,10 +58,10 @@ else
 fi
 
 # Wireugard
-source /opt/azureguard/scripts/subinstallers/wireguard.sh
+source ./scripts/subinstallers/wireguard.sh
 
 # Blobfuse
-source /opt/azureguard/scripts/subinstallers/blobfuse.sh
+source ./scripts/subinstallers/blobfuse.sh
 
 # unattended upgrades
 cp ./conf/20auto-upgrades /etc/apt/apt.conf.d/
