@@ -28,7 +28,6 @@ GIT_BRANCH=main
 echo "Cloning $GIT_BRANCH branch from azureguard repo"
 sudo git clone https://github.com/9aRpu/azureguard -b $GIT_BRANCH /opt/azureguard
 sudo chown -R $USER:$USER /opt/azureguard
-pushd .
 cd /opt/azureguard
 
 # Check updates
@@ -51,7 +50,7 @@ source ./scripts/subinstallers/platform.sh
 
 # Install kernel headers
 if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ]; then
-    apt-get install -yq linux-headers-"$(uname -r)"
+    sudo apt-get install -yq linux-headers-"$(uname -r)"
 else
     echo "Unsupported OS: $DISTRO"
     exit 1
@@ -64,9 +63,9 @@ source ./scripts/subinstallers/wireguard.sh
 source ./scripts/subinstallers/blobfuse.sh
 
 # unattended upgrades
-cp ./conf/20auto-upgrades /etc/apt/apt.conf.d/
-cp ./conf/50unattended-upgrades /etc/apt/apt.conf.d/
+sudo cp ./conf/20auto-upgrades /etc/apt/apt.conf.d/
+sudo cp ./conf/50unattended-upgrades /etc/apt/apt.conf.d/
 
-systemctl stop unattended-upgrades
-systemctl daemon-reload
-systemctl restart unattended-upgrades
+sudo systemctl stop unattended-upgrades
+sudo systemctl daemon-reload
+sudo systemctl restart unattended-upgrades
