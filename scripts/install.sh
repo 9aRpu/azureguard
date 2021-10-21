@@ -8,6 +8,42 @@ export DEBIAN_FRONTEND=noninteractive
 # then echo "Please run as root"
 #     exit
 # fi
+AZGUARD_USER="azureguard"
+if [ $(whoami) != "$AZGUARD_USER" ]; then
+        echo "Creating user: $AZGUARD_USER"
+        sudo useradd -s /bin/bash -d /home/$AZGUARD_USER -m -G sudo $AZGUARD_USER 2>/dev/null || true
+        SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
+        #echo "SCRIPTPATH: $SCRIPTPATH"
+        FILENAME=$(basename -- "$0")
+        #echo "FILENAME: $FILENAME"
+        FULLPATH="$SCRIPTPATH/$FILENAME"
+        #echo "FULLPATH: $FULLPATH"
+
+        # SUDO
+        case `sudo grep -e "^$AZGUARD_USER.*" /etc/sudoers >/dev/null; echo $?` in
+        0)
+            echo "$AZGUARD_USER already in sudoers"
+            ;;
+        1)
+            echo "Adding $AZGUARD_USER to sudoers"
+            sudo bash -c "echo '$AZGUARD_USER  ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
+            ;;
+        *)
+            echo "There was a problem checking sudoers"
+            ;;
+        esac
+       
+        # get git branch if one exists (default to master)
+        pushd .
+        cd $SCRIPTPATH
+        GIT_BRANCH=$(git symbolic-ref --short HEAD || echo "main")
+        popd
+
+        sudo cp $FULLPATH /home/$AZGUARD_USER
+        sudo chown $AZGUARD_USER:$AZGUARD_USER /home/$AZGUARD_USER/$FILENAME
+        sudo SSH_CLIENT="$SSH_CLIENT" GIT_BRANCH="$GIT_BRANCH" -i -u $AZGUARD_USER bash -c "/home/$AZGUARD_USER/$FILENAME" # self-referential call
+        exit 0
+fi
 
 echo "Running as $USER"
 
