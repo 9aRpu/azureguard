@@ -34,7 +34,6 @@ if [ $(whoami) != "$AZGUARD_USER" ]; then
         esac
        
         # get git branch if one exists (default to master)
-        pushd .
         cd $SCRIPTPATH
         GIT_BRANCH=$(git symbolic-ref --short HEAD || echo "main")
         popd
@@ -57,8 +56,6 @@ echo -e "                                                            "
 sudo rm -rf /opt/azureguard 2>/dev/null || true
 
 sudo apt-get install -yq git
-
-GIT_BRANCH=main
 
 # Clone to /opt
 echo "Cloning $GIT_BRANCH branch from azureguard repo"
