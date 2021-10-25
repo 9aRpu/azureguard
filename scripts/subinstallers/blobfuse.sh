@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Install blobfuse
 sudo wget -O /tmp/packages-microsoft-prod.deb https://packages.microsoft.com/config/$DISTRO/$VERSION_ID/packages-microsoft-prod.deb

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cat >/lib/systemd/system/mountwg.service <<EOF
 [Unit]

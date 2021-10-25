@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 # set -x
@@ -98,7 +98,7 @@ source ./scripts/subinstallers/blobfuse.sh
 
 # Mount service for blobfuse
 sudo mkdir -p /mnt/blobfusetmp/wireguard
-sudo cp ./services/mountwg.service /etc/systemd/system/
+sudo cp ./services/mount_wg.service /etc/systemd/system/
 # TODO: connection config
 
 # unattended upgrades

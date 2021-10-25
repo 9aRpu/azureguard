@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+set -e
+export AZGCLI_WORKDIR=$(cd $(dirname $0) && pwd)
+
+# shellcheck source=common
+. "$AZGCLI_WORKDIR/modules/common.sh"
+
+cli_help() {
+    cli_name=${0##*/}
+    echo -e "    ___                        ______                     __"
+    echo -e "   /   |____  __  __________  / ____/_  ______ __________/ /"
+    echo -e "  / /| /_  / / / / / ___/ _ \/ / __/ / / / __  / ___/ __  / "
+    echo -e " / ___ |/ /_/ /_/ / /  /  __/ /_/ / /_/ / /_/ / /  / /_/ /  "
+    echo -e "/_/  |_/___/\__,_/_/   \___/\____/\__,_/\__,_/_/   \__,_/   "
+    echo -e "                                                            "
+    echo "
+$cli_name
+AzureGuard CLI
+
+Version: $(cat $AZGCLI_WORKDIR/VERSION)
+https://github.com/9aRpu/azureguard
+
+Usage: $cli_name [global options] <subcommand> [args]
+
+Main subcommands:
+  loadbalancer              Operations on an Azure Load Balancer
+  loadbalacingrrule         Operations on an Azure Load Balancing Rule
+  node                      Operations on a wireguard connection node
+  team                      Operations on a team
+  interface                 Operations on a wireguard interface that can be used by a team
+  peer                      Operations on a wireguard peer configuration for a team member
+
+Global options (use these before the subcommand, if any):
+  -h                        Show this help output, or the help for a specified subcommand.
+  -v                        An alias for the "version" subcommand.
+  -d                        Show debug information
+    "
+    exit 1
+}
+
+cli_log "Exporting config ..."
+[ ! -f "$AZGCLI_WORKDIR/config" ] \
+&& echo "ERROR: No $AZGCLI_WORKDIR/config file found. " \
+&& echo "cp $AZGCLI_WORKDIR/config.template $AZGCLI_WORKDIR/config and adjust." \
+&& exit 1
+
+export $(cat "$AZGCLI_WORKDIR/config" | xargs)
+
+case "$1" in
+    interface)
+        shift
+        "$AZGCLI_WORKDIR/modules/interface.sh" "$@"
+    ;;
+    peer)
+        shift
+        "$AZGCLI_WORKDIR/modules/peer.sh" "$@"
+    ;;
+    -d|--debug)
+        shift
+        set -x
+        ./$0 "$@"
+    ;;
+    *)
+        cli_help
+    ;;
+esac
