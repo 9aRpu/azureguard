@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+set -e
+
+. "$AZGCLI_WORKDIR/modules/common"
+
+cli_help_add() {
+    echo "
+AzureGuard CLI - add a connection node
+
+Usage: azg [global options] node add [options]
+
+Options:
+  -n, --name        Name of the interface
+  -p, --port        Port of the interface
+  -t, --team        Team to assign the interface to
+  -s, --subnet      IPv4 subnet that is used for interface
+
+Examples:
+  azg interface add -n MyNewInterface -p 51844 -t Prodigy -s 10.0.0.0/24
+    "
+    exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -n|--name)
+            INTERFACENAME="$2"
+            shift
+            shift
+        ;;
+        -p|--port)
+            PORT="$2"
+            shift
+            shift
+        ;;
+        -t|--team)
+            TEAM="$2"
+            shift
+            shift
+        ;;
+        -s|--subnet)
+            SUBNET="$2"
+            shift
+            shift
+        ;;
+        *)  cli_log "[ERROR] Invalid argument: $1"
+            shift
+            cli_help_add
+        ;;
+    esac
+done
+
+if [ -n "${INTERFACENAME}" ] && [ -n "${PORT}" ] && [ -n "${TEAM}" ] && [ -n "${SUBNET}" ]; then
+    WIREGUARD_CONFIG="${WIREGUARD_PATH}/${INTERFACENAME}.conf"
+    cli_log "[INFO] New WireGuard config: ${WIREGUARD_CONFIG}"
+    if [ ! -f "${WIREGUARD_CONFIG}" ]; then
+        
+        cli_log "[INFO] Looking for public network interface ..."
+        SERVER_PUB_NIC="$(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)"
+        if [ -z "${SERVER_PUB_NIC}" ]; then
+            cli_log "[ERROR] Your server's public network interface could not be found."
+        fi
+        
+        cli_log "[INFO] Checking if port is available ..."
+        SERVER_PORT="${PORT}"
+        if [ "$(lsof -i UDP:"${SERVER_PORT}")" ]; then
+            cli_log "[ERROR] Please use a different port because ${SERVER_PORT} is already in use."
+        fi
+        
+        PRIVATE_SUBNET_V4="${SUBNET}"
+        PRIVATE_SUBNET_MASK_V4=$(echo "${PRIVATE_SUBNET_V4}" | cut -d "/" -f 2)
+        GATEWAY_ADDRESS_V4="$( next_ip "${PRIVATE_SUBNET_V4}")"
+        
+        cli_log "[INFO] Checking if server directory is available ..."
+        WIREGUARD_SERVER_PATH="${WIREGUARD_PATH}/${TEAM}/servers/${INTERFACENAME}"
+        [[ ! -d "${WIREGUARD_SERVER_PATH}" ]] && mkdir -p "${WIREGUARD_SERVER_PATH}"
+        
+        cli_log "[INFO] Generating server keys ..."
+        umask 077
+        wg genkey | tee "${WIREGUARD_SERVER_PATH}"/private_key | wg pubkey > "${WIREGUARD_SERVER_PATH}"/public_key
+        wg genpsk > "${WIREGUARD_SERVER_PATH}"/preshared_key
+        SERVER_PRIVKEY=$(<"${WIREGUARD_SERVER_PATH}"/private_key)
+        
+        IPTABLES_POSTUP="iptables -A FORWARD -i ${INTERFACENAME} -j ACCEPT; iptables -t nat -A POSTROUTING -o ${SERVER_PUB_NIC} -j MASQUERADE; ip6tables -A FORWARD -i ${INTERFACENAME} -j ACCEPT; ip6tables -t nat -A POSTROUTING -o ${SERVER_PUB_NIC} -j MASQUERADE"
+        IPTABLES_POSTDOWN="iptables -D FORWARD -i ${INTERFACENAME} -j ACCEPT; iptables -t nat -D POSTROUTING -o ${SERVER_PUB_NIC} -j MASQUERADE; ip6tables -D FORWARD -i ${INTERFACENAME} -j ACCEPT; ip6tables -t nat -D POSTROUTING -o ${SERVER_PUB_NIC} -j MASQUERADE"
+        
+        cli_log "[INFO] Generating server config ..."
+        echo "[Interface]
+Address = ${GATEWAY_ADDRESS_V4}/${PRIVATE_SUBNET_MASK_V4}
+ListenPort = ${SERVER_PORT}
+PrivateKey = ${SERVER_PRIVKEY}
+PostUp = ${IPTABLES_POSTUP}
+PostDown = ${IPTABLES_POSTDOWN}
+SaveConfig = true
+        " >> ${WIREGUARD_CONFIG}
+        
+        cli_log "[INFO] Enabling and starting services ..."
+        if pgrep systemd-journal > /dev/null 2>&1; then
+            systemctl --quiet reenable wg-quick@"${INTERFACENAME}"
+            systemctl --quiet restart wg-quick@"${INTERFACENAME}"
+        else
+            service wg-quick@"${INTERFACENAME}" enable
+            service wg-quick@"${INTERFACENAME}" restart
+        fi
+        echo "Done: Interface created"
+    else
+        cli_log "[ERROR] Interface already exists"
+        echo "Error: Interface already exists"
+    fi
+else
+    cli_log "[ERROR] Missing required arguments"
+    echo "Error: Missing required arguments"
+    cli_help_add
+fi

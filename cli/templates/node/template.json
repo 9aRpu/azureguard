@@ -1,0 +1,163 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "guid": {
+      "type": "string"
+    },
+    "solution": {
+      "type": "string"
+    },
+    "env": {
+      "type": "string",
+      "allowedValues": [
+        "dev",
+        "demo",
+        "prod"
+      ]
+    },
+    "location": {
+      "type": "string"
+    },
+    "adminUsername": {
+      "type": "string",
+      "minLength": 1,
+      "metadata": {
+        "description": "User name for the Virtual Machine."
+      }
+    },
+    "adminPublicKey": {
+      "type": "string"
+    },
+    "resourceTags": {
+      "type": "object"
+    },
+    "vnet": {
+      "type": "string"
+    },
+    "snet": {
+      "type": "string"
+    },
+    "vmSize": {
+      "type": "string"
+    },
+    "installScript": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "nsg-name": "[concat('nsg-',parameters('solution'),'-', parameters('guid'),'-',parameters('env'))]",
+    "nic-name": "[concat('nic-',parameters('solution'),'-', parameters('guid'),'-',parameters('env'))]",
+    "vm-name": "[concat('vm-',parameters('solution'),'-', parameters('guid'),'-',parameters('env'))]",
+    "disk-name": "[concat('osd-',parameters('solution'),'-', parameters('guid'),'-',parameters('env'))]",
+    "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnet').name, parameters('snet').name)]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2021-05-01",
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "[variables('nsg-name')]",
+      "tags": "[parameters('resourceTags')]",
+      "location": "[parameters('location')]",
+      "properties": {}
+    },
+    {
+      "apiVersion": "2021-05-01",
+      "type": "Microsoft.Network/networkInterfaces",
+      "name": "[variables('nic-name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('resourceTags')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsg-name'))]"
+      ],
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "ipconfig1",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ],
+        "networkSecurityGroup": {
+          "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('nsg-name'))]"
+        },
+        "enableAcceleratedNetworking": false
+      }
+    },
+    {
+      "apiVersion": "2021-07-01",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[variables('vm-name')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('resourceTags')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkInterfaces', variables('nic-name'))]"
+      ],
+      "properties": {
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": {
+          "computerName": "[variables('vm-name')]",
+          "adminUsername": "[parameters('adminUsername')]",
+          "linuxConfiguration": {
+            "disablePasswordAuthentication": true,
+            "ssh": {
+              "publicKeys": [
+                {
+                  "path": "[concat('/home/', parameters('adminUsername'), '/.ssh/authorized_keys')]",
+                  "keyData": "[parameters('adminPublicKey')]"
+                }
+              ]
+            }
+          }
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "debian",
+            "offer": "debian-10",
+            "sku": "10",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[variables('disk-name')]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage"
+          }
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('nic-name'))]"
+            }
+          ]
+        }
+      },
+      "resources": [
+        {
+          "type": "Microsoft.Compute/virtualMachines/extensions",
+          "name": "[concat(variables('vm-name'), '/installcustomscript')]",
+          "location": "[parameters('location')]",
+          "apiVersion": "2021-07-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.Compute/virtualMachines', variables('vm-name'))]"
+          ],
+          "tags": "[parameters('resourceTags')]",
+          "properties": {
+            "publisher": "Microsoft.Azure.Extensions",
+            "type": "CustomScript",
+            "typeHandlerVersion": "2.1",
+            "autoUpgradeMinorVersion": true,
+            "protectedSettings": {
+              "script": "[parameters('installScript')]"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "solution": {
+            "value": "prodigy-vpn"
+        },
+        "env": {
+            "value": "dev"
+        },
+        "location": {
+            "value": "westeurope"
+        },
+        "adminUsername": {
+            "value": "wgadmin"
+        },
+        "adminPublicKey": {
+            "value": null
+        },
+        "resourceTags": {
+            "value": {
+                "Owner": "Prodigy VPN",
+                "Solution": "Prodigy VPN",
+                "Environment": "Development",
+                "Created By": "The Creator"
+            }
+        },
+        "vmSize": {
+            "value": "Standard_B2s"
+        },
+        "installScript": {
+            "value": null
+        },
+        "guid": {
+            "value": "" 
+        },
+        "vnet": {
+            "value": ""
+        },
+        "snet": {
+            "value": ""
+        }
+    }
+}

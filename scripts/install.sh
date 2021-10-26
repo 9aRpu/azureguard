@@ -101,6 +101,10 @@ sudo mkdir -p /mnt/blobfusetmp/wireguard
 sudo cp ./services/mount_wg.service /etc/systemd/system/
 # TODO: connection config
 
+
+# Azure CLI
+source ./scripts/subinstallers/azcli.sh
+
 # unattended upgrades
 sudo cp ./conf/20auto-upgrades /etc/apt/apt.conf.d/
 sudo cp ./conf/50unattended-upgrades /etc/apt/apt.conf.d/
