@@ -109,4 +109,4 @@ sudo systemctl stop unattended-upgrades
 sudo systemctl daemon-reload
 sudo systemctl restart unattended-upgrades
 
-sudo ln -s /opt/azureguard/cli/azg /usr/local/bin/azg
+[[ ! -f /usr/local/bin/azg ]] && sudo ln -s /opt/azureguard/cli/azg /usr/local/bin/azg

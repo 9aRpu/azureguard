@@ -5,6 +5,7 @@ fail() {
 }
 
 cli_log() {
+    [[ ! -f "$AZGCLI_WORKDIR/logs/azg.log" ]] && touch "$AZGCLI_WORKDIR/logs/azg.log"
     script_name=$(echo ${0} | sed 's/.*\(cli\)/\1/g')
     timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     echo "== $timestamp ($script_name) $1" >> "$AZGCLI_WORKDIR/logs/azg.log"
