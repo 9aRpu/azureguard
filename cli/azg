@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -e
-AZGCLI_WORKDIR=$(cd $(dirname $0) && pwd)
+AZGCLI_WORKDIR="/opt/azureguard/cli"
 export AZGCLI_WORKDIR
 
 # shellcheck source=common

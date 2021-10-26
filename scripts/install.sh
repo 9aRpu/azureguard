@@ -35,12 +35,12 @@ if [ $(whoami) != "$AZGUARD_USER" ]; then
        
         # get git branch if one exists (default to master)
         pushd .
-        cd $SCRIPTPATH
+        cd "$SCRIPTPATH"
         GIT_BRANCH=$(git symbolic-ref --short HEAD || echo "main")
         popd
 
-        sudo cp $FULLPATH /home/$AZGUARD_USER
-        sudo chown $AZGUARD_USER:$AZGUARD_USER /home/$AZGUARD_USER/$FILENAME
+        sudo cp "$FULLPATH" /home/$AZGUARD_USER
+        sudo chown $AZGUARD_USER:$AZGUARD_USER "/home/$AZGUARD_USER/$FILENAME"
         sudo SSH_CLIENT="$SSH_CLIENT" GIT_BRANCH="$GIT_BRANCH" -i -u $AZGUARD_USER bash -c "/home/$AZGUARD_USER/$FILENAME" # self-referential call
         exit 0
 fi
@@ -108,3 +108,5 @@ sudo cp ./conf/50unattended-upgrades /etc/apt/apt.conf.d/
 sudo systemctl stop unattended-upgrades
 sudo systemctl daemon-reload
 sudo systemctl restart unattended-upgrades
+
+sudo ln -s /opt/azureguard/cli/azg /usr/local/bin/azg
