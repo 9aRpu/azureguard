@@ -16,7 +16,7 @@ Options:
   -p, --publicip    Public IPv4 that is used for the client configuration file.
 
 Example;
-  ./azg peer add -u tverkuij -t Prodigy -i MyNewInterface -p 206.32.152.78
+  azg peer add -u tverkuij -t Prodigy -i MyNewInterface -p 206.32.152.78
     "
     exit 1
 }

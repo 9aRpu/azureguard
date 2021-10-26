@@ -9,7 +9,7 @@ AzureGuard CLI - list interfaces
 Usage: azg [global options] interface list
 
 Examples:
-  ./azg interface list --all
+  azg interface list --all
     "
     exit 1
 }

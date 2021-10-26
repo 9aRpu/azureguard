@@ -16,7 +16,7 @@ Options:
   -s, --subnet      IPv4 subnet that is used for interface
 
 Examples:
-  ./azg interface add -n MyNewInterface -p 51844 -t Prodigy -s 10.0.0.0/24
+  azg interface add -n MyNewInterface -p 51844 -t Prodigy -s 10.0.0.0/24
     "
     exit 1
 }

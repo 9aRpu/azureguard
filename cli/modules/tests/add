@@ -4,12 +4,12 @@ set -e
 . "$AZGCLI_WORKDIR/modules/common"
 
 cli_log "[TEST] Running interface add test ..."
-./azg interface add -n MyNewInterface -p 51844 -t Prodigy -s 10.0.0.0/24
+azg interface add -n MyNewInterface -p 51844 -t Prodigy -s 10.0.0.0/24
 
 cli_log "[TEST] Sleeping for 3 seconds ..."
 sleep 3
 
 cli_log "[TEST] Running peer add test ..."
-./azg peer add -u tverkuij -t Prodigy -i MyNewInterface -p 206.32.152.78
+azg peer add -u tverkuij -t Prodigy -i MyNewInterface -p 206.32.152.78
 
 cli_log "[TEST] Testing done."

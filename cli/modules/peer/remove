@@ -14,7 +14,7 @@ Options:
   -t, --team            Team to assign the interface to
 
 Examples:
-  ./azg peer remove -u tverkuij -i MyNewInterface -t Prodigy
+  azg peer remove -u tverkuij -i MyNewInterface -t Prodigy
     "
     exit 1
 }

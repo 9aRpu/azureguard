@@ -13,7 +13,7 @@ Options:
   -t, --team        Team to assign the interface to
 
 Examples:
-  ./azg interface remove -n MyNewInterface -t Prodigy
+  azg interface remove -n MyNewInterface -t Prodigy
     "
     exit 1
 }
