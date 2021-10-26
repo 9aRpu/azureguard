@@ -70,7 +70,8 @@ if [ -n "${INTERFACENAME}" ] && [ -n "${PORT}" ] && [ -n "${TEAM}" ] && [ -n "${
         
         PRIVATE_SUBNET_V4="${SUBNET}"
         PRIVATE_SUBNET_MASK_V4=$(echo "${PRIVATE_SUBNET_V4}" | cut -d "/" -f 2)
-        GATEWAY_ADDRESS_V4="$( next_ip "${PRIVATE_SUBNET_V4}")"
+        PRIVATE_IP_V4=$(echo "${PRIVATE_SUBNET_V4}" | sed 's/\/[0-9]*$//g')
+        GATEWAY_ADDRESS_V4="$( next_ip "${PRIVATE_IP_V4}")"
         
         cli_log "[INFO] Checking if server directory is available ..."
         WIREGUARD_SERVER_PATH="${WIREGUARD_PATH}/${TEAM}/servers/${INTERFACENAME}"

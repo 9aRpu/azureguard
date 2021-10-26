@@ -56,7 +56,7 @@ echo -e "                                                            "
 
 sudo rm -rf /opt/azureguard 2>/dev/null || true
 
-sudo apt-get install -yq git
+sudo apt-get install -yq git lsof
 
 # Clone to /opt
 echo "Cloning $GIT_BRANCH branch from azureguard repo"
