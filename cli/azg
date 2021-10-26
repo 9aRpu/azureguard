@@ -25,7 +25,7 @@ Usage: $cli_name [global options] <subcommand> [args]
 
 Main subcommands:
   loadbalancer              Operations on an Azure Load Balancer
-  loadbalacingrrule         Operations on an Azure Load Balancing Rule
+  loadbalancingrule        Operations on an Azure Load Balancing Rule
   node                      Operations on a wireguard connection node
   team                      Operations on a team
   interface                 Operations on a wireguard interface that can be used by a team
