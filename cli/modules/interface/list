@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -e
+. "$AZGCLI_WORKDIR/modules/common"
+
+cli_help_list() {
+    echo "
+AzureGuard CLI - list interfaces
+
+Usage: azg [global options] interface list
+
+Examples:
+  ./azg interface list --all
+    "
+    exit 1
+}
+
+for filePath in "${WIREGUARD_PATH}"/*.conf; do
+    file=$(basename "${filePath}")
+    echo "${file%.*}"
+done

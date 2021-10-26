@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 set -e
-. "$AZGCLI_WORKDIR/modules/common.sh"
+. "$AZGCLI_WORKDIR/modules/common"
 
 cli_help_remove() {
     echo "
-AzureGuard CLI - remove an interface
+AzureGuard CLI - remove an interface. Please be careful, this will delete all peers.
 
 Usage: azg [global options] interface remove [options]
 
 Options:
-  -n, --name        Name of the interface
+  -n, --name        Name of the interface. It needs to match with the provided team
   -t, --team        Team to assign the interface to
 
 Examples:
@@ -31,6 +31,7 @@ while [[ $# -gt 0 ]]; do
             shift
         ;;
         *)  cli_log "[ERROR] Invalid argument: $1"
+            echo "Error: Invalid argument"
             shift
             cli_help_remove
         ;;
@@ -39,16 +40,18 @@ done
 
 if [ -n "${INTERFACENAME}" ] && [ -n "${TEAM}" ]; then
     WIREGUARD_CONFIG="${WIREGUARD_PATH}/${INTERFACENAME}.conf"
-    cli_log "[INFO] New WireGuard config: ${WIREGUARD_CONFIG}"
+    cli_log "[INFO] WireGuard config to remove: ${WIREGUARD_CONFIG}"
     if [ -f "${WIREGUARD_CONFIG}" ]; then
         if [ -d "${WIREGUARD_PATH}/${TEAM}/servers/${INTERFACENAME}" ]; then
             cli_log "[INFO] Stopping and disabling services ..."
-            if pgrep systemd-journal; then
-                systemctl stop wg-quick@"${INTERFACENAME}"
-                systemctl disable wg-quick@"${INTERFACENAME}"
+            if pgrep systemd-journal > /dev/null 2>&1; then
+                systemctl --quiet disable wg-quick@"${INTERFACENAME}"
+                systemctl --quiet stop wg-quick@"${INTERFACENAME}"
+                # wg-quick down "${INTERFACENAME}"
             else
-                service wg-quick@"${INTERFACENAME}" stop
                 service wg-quick@"${INTERFACENAME}" disable
+                service wg-quick@"${INTERFACENAME}" stop
+                # wg-quick down "${INTERFACENAME}"
             fi
             
             cli_log "[INFO] Removing server directory ..."
@@ -57,12 +60,15 @@ if [ -n "${INTERFACENAME}" ] && [ -n "${TEAM}" ]; then
             cli_log "[INFO] Removing config file ..."
             [[ -f "${WIREGUARD_CONFIG}" ]] && rm "${WIREGUARD_CONFIG}"
         else
-            cli_log "[ERROR] Interface does not exists for this team"
+            cli_log "[ERROR] Interface does not exist for this team"
+            echo "Error: Interface does not exist for this team"
         fi
     else
-        cli_log "[ERROR] Interface does not exists"
+        cli_log "[ERROR] Interface does not exist"
+        echo "Error: Interface does not exist"
     fi
 else
     cli_log "[ERROR] Missing required arguments"
+    echo "Error: Missing required arguments"
     cli_help_remove
 fi

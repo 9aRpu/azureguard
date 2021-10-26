@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -e
+
+. "$AZGCLI_WORKDIR/modules/common"
+
+
+cli_log "[TEST] Running peer remove test ..."
+./azg peer remove -u tverkuij -t Prodigy -i MyNewInterface
+
+cli_log "[TEST] Sleeping for 3 seconds ..."
+sleep 3
+
+cli_log "[TEST] Running remove test ..."
+./azg interface remove -n MyNewInterface -t Prodigy
+
+cli_log "[TEST] Testing done."

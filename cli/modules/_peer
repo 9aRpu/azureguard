@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -e
+
+. "$AZGCLI_WORKDIR/modules/common"
+
+cli_help_peer() {
+    echo "
+AzureGuard CLI
+
+Usage: azg [global options] peer <operation>
+
+Main operations:
+  add       Add a wireguard peer
+  remove    Remove a wireguard peer
+  update    Update a wireguard peer
+  show      Show wireguard peer details
+  list      List wireguard peers
+    "
+    exit 1
+}
+
+[ -z "$1" ] && cli_help_peer
+
+case "$1" in
+    add)
+        shift
+        "$AZGCLI_WORKDIR/modules/peer/add" "$@"
+    ;;
+    remove)
+        shift
+        "$AZGCLI_WORKDIR/modules/peer/remove" "$@"
+    ;;
+    update)
+        shift
+        "$AZGCLI_WORKDIR/modules/peer/update" "$@"
+    ;;
+    show)
+        shift
+        "$AZGCLI_WORKDIR/modules/peer/show" "$@"
+    ;;
+    list)
+        shift
+        "$AZGCLI_WORKDIR/modules/peer/list" "$@"
+    ;;
+    *)
+        cli_help_interface
+    ;;
+esac

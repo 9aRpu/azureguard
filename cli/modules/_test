@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -e
+
+. "$AZGCLI_WORKDIR/modules/common"
+
+cli_help_test() {
+    echo "
+AzureGuard CLI
+
+Usage: azg [global options] test <operation>
+
+Main operations:
+  add      Run unit tests for adding resources
+  remove   Run unit tests for removing resources
+    "
+    exit 1
+}
+
+[ -z "$1" ] && cli_help_test
+
+case "$1" in
+    add)
+        shift
+        "$AZGCLI_WORKDIR/modules/tests/add" "$@"
+    ;;
+    remove)
+        shift
+        "$AZGCLI_WORKDIR/modules/tests/remove" "$@"
+    ;;
+    *)
+        cli_help_test
+    ;;
+esac

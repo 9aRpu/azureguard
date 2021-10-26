@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -e
+. "$AZGCLI_WORKDIR/modules/common"
+
+cli_help_remove() {
+    echo "
+AzureGuard CLI - remove a peer
+
+Usage: azg [global options] peer remove [options]
+
+Options:
+  -u, --username        Username that is used for the peer connection.
+  -i, --interface       Interface to remove the peer from. Returns an error when the interface does not exist.
+  -t, --team            Team to assign the interface to
+
+Examples:
+  ./azg peer remove -u tverkuij -i MyNewInterface -t Prodigy
+    "
+    exit 1
+}
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -u|--username)
+            USERNAME="$2"
+            shift
+            shift
+        ;;
+        -i|--interface)
+            INTERFACENAME="$2"
+            shift
+            shift
+        ;;
+        -t|--team)
+            TEAM="$2"
+            shift
+            shift
+        ;;
+        *)  cli_log "[ERROR] Invalid argument: $1"
+            fail "Error: Invalid argument"
+            shift
+            cli_help_remove
+        ;;
+    esac
+done
+
+if [ -n "${INTERFACENAME}" ] && [ -n "${TEAM}" ]  && [ -n "${USERNAME}" ]; then
+    CLIENT_NAME=${USERNAME}
+    WIREGUARD_PUB_NIC=${INTERFACENAME}
+    WIREGUARD_CONFIG="${WIREGUARD_PATH}/${WIREGUARD_PUB_NIC}.conf"
+    cli_log "[INFO] WireGuard config to remove peer from: ${WIREGUARD_CONFIG}"
+    
+    if [ -f "${WIREGUARD_CONFIG}" ]; then
+        WIREGUARD_CLIENT_PATH="${WIREGUARD_PATH}/${TEAM}/clients/${WIREGUARD_PUB_NIC}"
+        
+        if [ -f "${WIREGUARD_CLIENT_PATH}"/"${CLIENT_NAME}"-"${WIREGUARD_PUB_NIC}".conf ]; then
+            CLIENTKEY=$(sed -n "/\# ${CLIENT_NAME} start/,/\# ${CLIENT_NAME} end/p" "${WIREGUARD_CONFIG}" | grep PublicKey | awk '{print $3}')
+            wg set "${WIREGUARD_PUB_NIC}" peer "${CLIENTKEY}" remove
+            sed -i "/\# ${CLIENT_NAME} start/,/\# ${CLIENT_NAME} end/d" "${WIREGUARD_CONFIG}"
+            rm -f "${WIREGUARD_CLIENT_PATH}"/"${CLIENT_NAME}"-"${WIREGUARD_PUB_NIC}".conf
+            wg addconf "${WIREGUARD_PUB_NIC}" <(wg-quick strip "${WIREGUARD_PUB_NIC}")
+        else
+            cli_log "[ERROR] Peer does not exist for this team"
+            fail "Error: Peer does not exist for this team"
+        fi
+    else
+        cli_log "[ERROR] Interface does not exist"
+        fail "Error: Interface does not exist"
+    fi
+else
+    cli_log "[ERROR] Missing required arguments"
+    fail "Error: Missing required arguments"
+    cli_help_remove
+fi

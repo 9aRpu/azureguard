@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+fail() {
+    printf '%s\n' "$1" >&2
+    exit "${2-1}" ## Return a code specified by $2, or 1 by default.
+}
+
+cli_log() {
+    script_name=$(echo ${0} | sed 's/.*\(cli\)/\1/g')
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    echo "== $timestamp ($script_name) $1" >> "$AZGCLI_WORKDIR/logs/azg.log"
+}
+
+next_ip(){
+    CURRENTIP=$1
+    IP_HEX=$(printf '%.2X%.2X%.2X%.2X\n' `echo $CURRENTIP | sed -e 's/\./ /g'`)
+    NEXT_IP_HEX=$(printf %.8X `echo $(( 0x$IP_HEX + 1 ))`)
+    NEXT_IP=$(printf '%d.%d.%d.%d\n' `echo $NEXT_IP_HEX | sed -r 's/(..)/0x\1 /g'`)
+    echo "$NEXT_IP"
+}

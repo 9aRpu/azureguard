@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -e
-export AZGCLI_WORKDIR=$(cd $(dirname $0) && pwd)
+AZGCLI_WORKDIR=$(cd $(dirname $0) && pwd)
+export AZGCLI_WORKDIR
 
 # shellcheck source=common
-. "$AZGCLI_WORKDIR/modules/common.sh"
+. "$AZGCLI_WORKDIR/modules/common"
 
 cli_help() {
     cli_name=${0##*/}
@@ -29,18 +30,19 @@ Main subcommands:
   team                      Operations on a team
   interface                 Operations on a wireguard interface that can be used by a team
   peer                      Operations on a wireguard peer configuration for a team member
+  test                      Test the CLI for basic functionality
 
 Global options (use these before the subcommand, if any):
   -h                        Show this help output, or the help for a specified subcommand.
-  -v                        An alias for the "version" subcommand.
+  -v                        An alias for the \"version\" subcommand.
   -d                        Show debug information
     "
     exit 1
 }
 
-cli_log "Exporting config ..."
+cli_log "[INFO] Exporting config ..."
 [ ! -f "$AZGCLI_WORKDIR/config" ] \
-&& echo "ERROR: No $AZGCLI_WORKDIR/config file found. " \
+&& echo "[ERROR] No $AZGCLI_WORKDIR/config file found. " \
 && echo "cp $AZGCLI_WORKDIR/config.template $AZGCLI_WORKDIR/config and adjust." \
 && exit 1
 
@@ -49,11 +51,15 @@ export $(cat "$AZGCLI_WORKDIR/config" | xargs)
 case "$1" in
     interface)
         shift
-        "$AZGCLI_WORKDIR/modules/interface.sh" "$@"
+        "$AZGCLI_WORKDIR/modules/_interface" "$@"
     ;;
     peer)
         shift
-        "$AZGCLI_WORKDIR/modules/peer.sh" "$@"
+        "$AZGCLI_WORKDIR/modules/_peer" "$@"
+    ;;
+    test)
+        shift
+        "$AZGCLI_WORKDIR/modules/_test" "$@"
     ;;
     -d|--debug)
         shift

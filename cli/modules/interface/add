@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -e
-. "$AZGCLI_WORKDIR/modules/common.sh"
+set -x
+. "$AZGCLI_WORKDIR/modules/common"
 
 cli_help_add() {
     echo "
 AzureGuard CLI - add an interface
 
-Usage: azg.sh [global options] interface add [options]
+Usage: azg [global options] interface add [options]
 
 Options:
   -n, --name        Name of the interface
@@ -69,24 +70,23 @@ if [ -n "${INTERFACENAME}" ] && [ -n "${PORT}" ] && [ -n "${TEAM}" ] && [ -n "${
         
         PRIVATE_SUBNET_V4="${SUBNET}"
         PRIVATE_SUBNET_MASK_V4=$(echo "${PRIVATE_SUBNET_V4}" | cut -d "/" -f 2)
-        GATEWAY_ADDRESS_V4="${PRIVATE_SUBNET_V4::-3}1"
+        GATEWAY_ADDRESS_V4="$( next_ip "${PRIVATE_SUBNET_V4}")"
         
         cli_log "[INFO] Checking if server directory is available ..."
         WIREGUARD_SERVER_PATH="${WIREGUARD_PATH}/${TEAM}/servers/${INTERFACENAME}"
-        [[ ! -d "${WIREGUARD_SERVER_PATH}" ]] && mkdir -p ${WIREGUARD_SERVER_PATH}
+        [[ ! -d "${WIREGUARD_SERVER_PATH}" ]] && mkdir -p "${WIREGUARD_SERVER_PATH}"
         
         cli_log "[INFO] Generating server keys ..."
         umask 077
         wg genkey | tee "${WIREGUARD_SERVER_PATH}"/private_key | wg pubkey > "${WIREGUARD_SERVER_PATH}"/public_key
         wg genpsk > "${WIREGUARD_SERVER_PATH}"/preshared_key
-        SERVER_PRIVKEY=$(<${WIREGUARD_SERVER_PATH}/private_key)
+        SERVER_PRIVKEY=$(<"${WIREGUARD_SERVER_PATH}"/private_key)
         
         IPTABLES_POSTUP="iptables -A FORWARD -i ${INTERFACENAME} -j ACCEPT; iptables -t nat -A POSTROUTING -o ${SERVER_PUB_NIC} -j MASQUERADE; ip6tables -A FORWARD -i ${INTERFACENAME} -j ACCEPT; ip6tables -t nat -A POSTROUTING -o ${SERVER_PUB_NIC} -j MASQUERADE"
         IPTABLES_POSTDOWN="iptables -D FORWARD -i ${INTERFACENAME} -j ACCEPT; iptables -t nat -D POSTROUTING -o ${SERVER_PUB_NIC} -j MASQUERADE; ip6tables -D FORWARD -i ${INTERFACENAME} -j ACCEPT; ip6tables -t nat -D POSTROUTING -o ${SERVER_PUB_NIC} -j MASQUERADE"
         
         cli_log "[INFO] Generating server config ..."
-        echo "
-[Interface]
+        echo "[Interface]
 Address = ${GATEWAY_ADDRESS_V4}/${PRIVATE_SUBNET_MASK_V4}
 ListenPort = ${SERVER_PORT}
 PrivateKey = ${SERVER_PRIVKEY}
@@ -96,17 +96,20 @@ SaveConfig = true
         " >> ${WIREGUARD_CONFIG}
         
         cli_log "[INFO] Enabling and starting services ..."
-        if pgrep systemd-journal; then
-            systemctl reenable wg-quick@"${INTERFACENAME}"
-            systemctl restart wg-quick@"${INTERFACENAME}"
+        if pgrep systemd-journal > /dev/null 2>&1; then
+            systemctl --quiet reenable wg-quick@"${INTERFACENAME}"
+            systemctl --quiet restart wg-quick@"${INTERFACENAME}"
         else
             service wg-quick@"${INTERFACENAME}" enable
             service wg-quick@"${INTERFACENAME}" restart
         fi
+        echo "Done: Interface created"
     else
         cli_log "[ERROR] Interface already exists"
+        echo "Error: Interface already exists"
     fi
 else
     cli_log "[ERROR] Missing required arguments"
+    echo "Error: Missing required arguments"
     cli_help_add
 fi
